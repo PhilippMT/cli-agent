@@ -119,14 +119,24 @@ def handle_mcp(
 
     args = {}
     # Run the setup and check if it was successful
-    if integration in ["vscode", "cursor"]:
+    if integration in ["vscode", "cursor", "zed", "claude_code"]:
         # Getting the args
         if kwargs.get("local"):
             args = {"option": "local"}
             local_workspace = kwargs.get("local")
             if isinstance(local_workspace, str) and integration:
-                dot_file = ".cursor" if integration == "cursor" else ".vscode"
-                readable = "Cursor" if integration == "cursor" else "VS Code"
+                if integration == "cursor":
+                    dot_file = ".cursor"
+                    readable = "Cursor"
+                elif integration == "vscode":
+                    dot_file = ".vscode"
+                    readable = "VS Code"
+                elif integration == "zed":
+                    dot_file = ".zed"
+                    readable = "Zed"
+                else:
+                    dot_file = ".claude"
+                    readable = "Claude Code"
                 validate_path, message = validate_project_path(
                     local_workspace,
                     dot_file=dot_file,
