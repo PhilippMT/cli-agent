@@ -62,14 +62,14 @@ class MCPSetupCommand(BaseCommand):
             "--globally",
             dest="global",
             action="store_true",
-            help="For VS Code or Cursor to set the Global MCP",
+            help="For VS Code, Cursor, Zed or Claude Code to set the Global MCP",
         )
         parser.add_argument(
             "--specific-workspace",
             dest="local",
             nargs="?",
             const=True,
-            help="For VS Code or Cursor to set the Local MCP",
+            help="For VS Code, Cursor, Zed or Claude Code to set the Local MCP",
         )
         parser.add_argument(
             "--stdio",
@@ -343,6 +343,9 @@ class MCPCommandGroup(CommandGroup):
 
     def get_name(self) -> str:
         return "mcp"
+
+    def get_aliases(self) -> list[str]:
+        return ["coding-agent"]
 
     def get_help(self) -> str:
         return "setup the MCP server for an integration"

@@ -451,7 +451,7 @@ windsurf_integration = Integration(
 
 zed_integration = Integration(
     id="zed",
-    options=[],
+    options=options,
     text_success=text_success_zed,
     readable="Zed",
     support_sse=False,
@@ -488,7 +488,7 @@ shortwave_integration = Integration(
 
 claude_cli_integration = Integration(
     id="claude_code",
-    options=[],  # TODO: Add local and global options
+    options=options,
     text_success=text_success_claude_cli,
     readable="Claude Code",
     docs=URLs.CLAUDE_CLI_MCP_DOCS.value,

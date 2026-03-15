@@ -10,6 +10,7 @@ import httpcore
 
 from websocket import WebSocketConnectionClosedException
 from pieces.mcp.utils import get_mcp_latest_url
+from pieces.mcp.context_engineering import optimize_tool_arguments
 from pieces.mcp.tools_cache import PIECES_MCP_TOOLS_CACHE
 from pieces.settings import Settings
 from .._vendor.pieces_os_client.wrapper.version_compatibility import (
@@ -585,7 +586,8 @@ class PosMcpConnection:
             Settings.logger.debug(f"Calling upstream tool: {name}")
             session = await self.connect()
 
-            result = await session.call_tool(name, arguments)
+            optimized_arguments = optimize_tool_arguments(name, arguments)
+            result = await session.call_tool(name, optimized_arguments)
             Settings.logger.debug(f"Successfully called tool: {name}")
             Settings.logger.debug(f"with results: {result}")
             return result
