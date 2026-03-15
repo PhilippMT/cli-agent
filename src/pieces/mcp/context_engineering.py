@@ -49,6 +49,9 @@ _APP_SOURCE_KEYWORDS = {
     "obsidian": "Obsidian",
 }
 
+# Keep summary descriptions short enough for compact previews in IDE/tool UIs.
+_MAX_SUMMARY_DESCRIPTION_LENGTH = 120
+
 
 def _env_csv_list(key: str) -> list[str]:
     value = os.getenv(key, "")
@@ -57,17 +60,19 @@ def _env_csv_list(key: str) -> list[str]:
 
 def _normalize_files(files: list[str]) -> list[str]:
     normalized: list[str] = []
+    seen: set[str] = set()
     for file in files:
         if not isinstance(file, str) or not file.strip():
             continue
         path = os.path.abspath(os.path.expanduser(file.strip()))
-        if path not in normalized:
+        if path not in seen:
+            seen.add(path)
             normalized.append(path)
     return normalized
 
 
 def _infer_topics(question: str, max_topics: int = 5) -> list[str]:
-    words = re.findall(r"[A-Za-z0-9_./-]+", question.lower())
+    words = re.findall(r"[A-Za-z0-9_]+", question.lower())
     topics: list[str] = []
     for word in words:
         if len(word) < 3 or word in _STOP_WORDS:
@@ -85,7 +90,10 @@ def _infer_application_sources(question: str) -> list[str]:
     for key, source in _APP_SOURCE_KEYWORDS.items():
         if key in normalized and source not in sources:
             sources.append(source)
-    if ("http://" in normalized or "https://" in normalized or "browser" in normalized) and "Google Chrome" not in sources:
+    mentions_web_context = (
+        "http://" in normalized or "https://" in normalized or "browser" in normalized
+    )
+    if mentions_web_context and "Google Chrome" not in sources:
         sources.append("Google Chrome")
     return sources
 
@@ -103,10 +111,14 @@ def _derive_summary_description(summary: str) -> str:
     cleaned = " ".join(summary.strip().split())
     if not cleaned:
         return "Project memory"
+
+    def _truncate(value: str) -> str:
+        return value[:_MAX_SUMMARY_DESCRIPTION_LENGTH]
+
     sentence = cleaned.split(".")[0].strip()
     if sentence:
-        return sentence[:120]
-    return cleaned[:120]
+        return _truncate(sentence)
+    return _truncate(cleaned)
 
 
 def optimize_tool_arguments(tool_name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
@@ -125,7 +137,7 @@ def optimize_tool_arguments(tool_name: str, arguments: dict[str, Any] | None) ->
             args["application_sources"] = _infer_application_sources(question)
         if not args.get("related_questions") and question:
             args["related_questions"] = _build_related_questions(question)
-        args.setdefault("chat_llm", os.getenv("PIECES_CHAT_LLM", "unknown"))
+        args.setdefault("chat_llm", os.getenv("PIECES_CHAT_LLM", "not_configured"))
         args.setdefault("connected_client", connected_client)
 
     if tool_name == "create_pieces_memory":
